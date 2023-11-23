@@ -207,3 +207,101 @@ exports.resetPassword = async (req, res) => {
     });
   }
 };
+
+// Change password
+exports.changePassword = async (req, res, next) => {
+  const userId = req.user.id;
+  const { currentPassword, password } = req.body;
+  const newPassword = await bcrypt.hash(password, 10);
+  const user = await User.findOne({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (bcrypt.compareSync(currentPassword, user.password)) {
+    if (user) {
+      user.password = newPassword;
+      user.save();
+      return res.status(200).json({
+        message: "Password changed successfully.",
+        status: 200,
+      });
+    } else {
+      return res.status(400).json({
+        message: "User not found.",
+        status: 400,
+      });
+    }
+  } else {
+    return res.status(400).json({ message: "Current Password is incorrect" });
+  }
+};
+
+// logout controller
+exports.doLogout = async (req, res) => {
+  //clear the cookie stored in the browser
+  res.clearCookie("token");
+  res.status(200).json({
+    message: "Logged out successfully.",
+    status: 200,
+  });
+};
+
+//display all users
+exports.displayAllUsers = async (req, res, next) => {
+  const users = await User.findAll({
+    attributes: ["username", "fullname", "email", "avatar", "wins"],
+  });
+
+  return res.status(200).json({ users, status: 200 });
+};
+
+// getProfile
+exports.getProfile = async (req, res) => {
+  const userId = req.user.id;
+  const user = await User.findOne({
+    where: userId,
+    attributes: [
+      "id",
+      "username",
+      "fullname",
+      "email",
+      "avatar",
+      "tournamentsPlayed",
+      "wins",
+      "bio",
+    ],
+  });
+  if (!user) {
+    return res.status(400).json({ message: "User not Found!", status: 400 });
+  }
+
+  const userWallet = await db.wallet.findOne({
+    where: { userId },
+    attributes: ["id", "balance"],
+  });
+  const inGameId = await db.inGameId.findAll({
+    where: { userId },
+    attributes: ["id", "playerId"],
+    include: [{ model: db.games, attributes: ["gameName"] }],
+  });
+  return res.status(200).json({ user, userWallet, inGameId, status: 200 });
+};
+
+// display bio
+exports.displayUserBio = async (req, res) => {
+  const userId = req.user.id;
+  const userBio = await User.findByPk(userId, { attributes: ["bio"] });
+  return res.json(userBio);
+};
+
+// update user bio
+exports.updateUserBio = async (req, res) => {
+  const userId = req.user.id;
+  const { bio } = req.body;
+  const user = await User.findByPk(userId);
+  user.bio = bio;
+  await user.save();
+  return res.status(200).json(user.bio);
+};
