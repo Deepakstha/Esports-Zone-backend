@@ -140,3 +140,70 @@ exports.login = async (req, res, next) => {
       status: 200,
     });
 };
+
+// send reset password link controller
+exports.sendResetPasswordLink = async (req, res) => {
+  const email = req.body.email;
+  const userFound = await User.findAll({
+    where: {
+      email: email,
+    },
+  });
+  if (userFound.length != 0) {
+    const resetToken = createToken(
+      { id: userFound[0].id },
+      process.env.PASSWORD_RESET_SECRET,
+      "1d"
+    ).toString();
+    const resetURL = `${req.headers.origin}/reset-password?reset_token=${resetToken}`;
+
+    try {
+      await passwordResetMail({
+        email: userFound[0].email,
+        subject: "Reset your password",
+        token: resetURL,
+      });
+      return res
+        .status(201)
+        .json({ message: "Please Check your email", status: 201 });
+    } catch (error) {
+      return res.json({ message: error.message, status: 500 });
+    }
+  } else {
+    res.status(500).json({
+      message: "User is not registered.",
+      status: 500,
+    });
+  }
+};
+
+// reset password controller
+exports.resetPassword = async (req, res) => {
+  const { password, confirmPassword } = req.body;
+  if (password != confirmPassword) {
+    return res.status(400).json({ message: "Password doesnot match" });
+  }
+  const newPassword = bcrypt.hashSync(password, 10);
+  const token = req.params.reset_token;
+  const userId = verifyToken(token, process.env.PASSWORD_RESET_SECRET);
+
+  const user = await User.findOne({
+    where: {
+      id: userId.id,
+    },
+  });
+  if (user) {
+    //updating the password to new password
+    user.password = newPassword;
+    user.save();
+    res.status(201).json({
+      message: "Password changed successfully.",
+      status: 201,
+    });
+  } else {
+    res.status(400).json({
+      message: "User not found.",
+      status: 400,
+    });
+  }
+};
