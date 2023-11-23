@@ -7,7 +7,7 @@ const sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
   dialect: dbConfig.dialect,
   port: dbConfig.port,
   pool: dbConfig.pool,
-  logging: false,
+  //   logging: false,
   timezone: "+05:45",
 });
 
@@ -26,3 +26,6 @@ dbConnection();
 const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
+db.user = require("./user/userModel")(sequelize, DataTypes);
+
+module.exports = db;
