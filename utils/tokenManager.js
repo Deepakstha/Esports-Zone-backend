@@ -1,7 +1,7 @@
 jwt = require("jsonwebtoken");
 
-exports.createToken = (user, secret, expireTime) => {
-  return jwt.sign(user, secret, {
+exports.createToken = (data, secret, expireTime) => {
+  return jwt.sign(data, secret, {
     expiresIn: expireTime,
   });
 };

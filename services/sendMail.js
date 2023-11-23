@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+require("dotenv").config();
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -34,15 +35,7 @@ const accountActivationMail = async ({ email, subject, fullname, token }) => {
     </table>
     `,
   };
-  try {
-    const res = await transporter.sendMail(mailOption);
-    return {
-      success: true,
-      status: 200,
-      message: "Verification mail has been sent to your email",
-    };
-  } catch (error) {
-    next(error);
-    return { success: false, status: 401, message: "❌ Failed to send email!" };
-  }
+  await transporter.sendMail(mailOption);
 };
+
+module.exports = { accountActivationMail };

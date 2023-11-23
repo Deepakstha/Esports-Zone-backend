@@ -28,4 +28,28 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 db.user = require("./user/userModel")(sequelize, DataTypes);
 
+// for db connection
+db.sequelize.sync({ force: false }).then(async () => {
+  // Seeding Admin
+  await db.user
+    .findOrCreate({
+      where: {
+        email: process.env.ADMIN_EMAIL,
+      },
+      defaults: {
+        fullname: process.env.ADMIN_FULLNAME,
+        username: process.env.ADMIN_USERNAME,
+        email: process.env.ADMIN_EMAIL,
+        password: bcrypt.hashSync(process.env.ADMIN_PASSWORD, 10),
+        role: "admin",
+      },
+    })
+    .then(() => {
+      console.log("Admin Seeded Succesfully");
+    })
+    .catch((err) => {
+      return console.log(" error ", err);
+    });
+});
+
 module.exports = db;
