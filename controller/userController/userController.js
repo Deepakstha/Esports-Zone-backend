@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const fs = require("fs");
 const bcrypt = require("bcrypt");
 const User = require("../../model").user;
-const { createToken } = require("../../utils/tokenManager");
+const { createToken, verifyToken } = require("../../utils/tokenManager");
 const customeErrorHandler = require("../../utils/customerErrorHandler");
 
 exports.signup = async (req, res, next) => {
@@ -46,7 +46,47 @@ exports.signup = async (req, res, next) => {
     "5m"
   ).toString();
 
-  const activatioUrl = `${req.headers.origin}/activation?token=${activationToken}`;
-  //   const resp = await SendmailTransport()
-  return res.status(200).json({ message: "Mail sent to your email" });
+  const activationUrl = `${req.headers.origin}/activation?token=${activationToken}`;
+  const resp = await sendMail({
+    email: user.email,
+    subject: "Activate Your Account",
+    full: user.fullname,
+    token: activationUrl,
+  });
+  res
+    .status(resp.status)
+    .json({ message: resp.message, success: resp.success });
+};
+
+// activate user
+exports.activateAccount = async (req, res, next) => {
+  const { activationToken } = req.body;
+  if (!activationToken) {
+    return res.status(400).json({ message: "Invallid Token!" });
+  }
+
+  let decode = verifyToken(activationToken, process.env.ACTIVATION_SECRET);
+  if (!decode) {
+    return res.status(400).json({ message: "Invallid Token!" });
+  }
+  const { fullname, email, password } = decode;
+  const userEmailExist = await User.findOne({ where: { email } });
+  if (userEmailExist) {
+    return res
+      .status(401)
+      .json({ message: "User Already Registered!", status: 401 });
+  }
+
+  let randomNumber = Math.floor(Math.random() * 10000);
+  const firstName = fullname.split(" ")[0];
+  const user = await User.create({
+    fullname,
+    username: firstName + randomNumber,
+    email,
+    password,
+  });
+
+  if (user) {
+    return res.json({ message: "User Registered" });
+  }
 };

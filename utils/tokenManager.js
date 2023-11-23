@@ -5,3 +5,7 @@ exports.createToken = (user, secret, expireTime) => {
     expiresIn: expireTime,
   });
 };
+
+exports.verifyToken = (token, secret) => {
+  return jwt.verify(token, secret);
+};
