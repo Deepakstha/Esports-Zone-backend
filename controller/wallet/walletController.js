@@ -52,3 +52,20 @@ exports.getAllWallets = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.deleteWallet = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    await Wallet.destroy({
+      where: {
+        userId: userId,
+      },
+    });
+
+    res.status(400).json({
+      message: "Wallet deleted successfully.",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
