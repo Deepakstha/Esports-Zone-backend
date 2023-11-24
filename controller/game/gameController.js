@@ -1,6 +1,6 @@
 const fs = require("fs");
 const { promises } = require("fs");
-const db = require("../model");
+const db = require("../../model");
 
 const Games = db.games;
 
