@@ -1,5 +1,6 @@
 const db = require("../../model");
 const fs = require("fs");
+const { createToken, verifyToken } = require("../../utils/tokenManager");
 const Teams = db.teams;
 const TeamPlayers = db.teamPlayers;
 
@@ -234,9 +235,62 @@ exports.inviteLinks = async (req, res, next) => {
       .status(401)
       .json({ message: "You donot have permission", status: 401 });
   }
-  const token = jwt.sign({ teamId }, process.env.JWT_SECRET, {
-    expiresIn: process.env.TEAM_INVITATION_EXPIRES_IN,
-  });
+  const token = createToken(
+    { teamId },
+    process.env.JWT_SECRET,
+    process.env.TEAM_INVITATION_EXPIRES_IN
+  );
+
   const teamInvitationLink = `${req.headers.origin}/squad/${team.id}?invitation=${token}`;
   return res.status(200).json({ teamInvitationLink });
+};
+
+// Team Joining Links
+exports.teamJoiningWithInviteLinks = async (req, res, next) => {
+  // const { joining_token } = req.body;
+  const { joining_token } = req.params;
+  const userId = req.user.id;
+  if (!joining_token) {
+    return res.status(400).json({ message: "Invalid Token!", status: 400 });
+  }
+  const user = await db.user.findByPk(userId);
+  let decode;
+  try {
+    decode = verifyToken(joining_token, process.env.JWT_SECRET);
+  } catch (error) {
+    return res.status(400).json({ message: error.message, status: 400 });
+  }
+  const { teamId } = decode;
+  const team = await db.teams.findByPk(teamId);
+  const userInTeam = await db.teamPlayers.findOne({
+    where: { teamId, userId },
+  });
+  if (userInTeam) {
+    return res.status(409).json({ message: "User Already in the team!" });
+  }
+  const playersInTeam = await db.teamPlayers.count({
+    where: { teamId },
+  });
+
+  if (playersInTeam >= team.maxPlayers) {
+    return res
+      .status(400)
+      .json({ message: "Team is already full", status: 400 });
+  }
+  const addingUserInTeam = await db.teamPlayers.create({ userId, teamId });
+
+  console.log(
+    userId,
+    team.userId,
+    `${user.username} Joind your team ${team.teamName}`
+  );
+  sendNotification(
+    userId,
+    team.userId,
+    `${user.username} Joind your team ${team.teamName}`
+  );
+  return res.status(200).json({
+    message: `You Joined the Team ${team.teamName}`,
+    addingUserInTeam,
+  });
 };
