@@ -93,3 +93,150 @@ exports.getById = async (req, res, next) => {
     next(error);
   }
 };
+
+// Delete team
+exports.deleteById = async (req, res, next) => {
+  const teamId = req.params.id;
+  let userId;
+  const role = req.user.role;
+
+  if (role === "admin") {
+    userId = req.body.userId;
+  } else {
+    userId = req.user.id;
+  }
+
+  try {
+    const teamPlayers = await db.teamPlayers.findAll({ where: { teamId } });
+    const team = await Teams.findOne({
+      where: { id: teamId },
+    });
+    if (!team) {
+      res.status(404).json({ message: "Team Doesn't Exist", status: 404 });
+    }
+
+    const filterLeader = teamPlayers.filter((data) => data.role != "player");
+    if (filterLeader[0].userId == userId) {
+      let keys;
+      if (team.logo != null) {
+        keys = team.logo.split("/").pop();
+      }
+      const deleteTeam = await team.destroy();
+
+      return res
+        .status(200)
+        .json({ message: "team Deleted", filterLeader, status: 200 });
+    } else {
+      return res.status(400).json({
+        message: "Only team leader has permission to delete Team",
+        status: 400,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
+// display top ten squad
+exports.displayTopTenSquad = async (req, res) => {
+  const displayTopSquad = await Teams.findAll({
+    attributes: ["id", "teamName", "logo", "wins"],
+    order: [["wins", "DESC"]],
+    limit: 10,
+  });
+  return res.status(200).json(displayTopSquad);
+};
+
+// Update Team
+exports.updateById = async (req, res, next) => {
+  const userId = req.user.id;
+  const teamId = req.params.id;
+  const { teamName } = req.body;
+
+  if (!teamName) {
+    return res.status(400).json({
+      message: "Team name is empty",
+    });
+  }
+  if (!req.file) {
+    return res.status(400).json({ message: "Please Insert team logo" });
+  }
+
+  try {
+    let team = await Teams.findOne({ where: { id: teamId } });
+    if (!team) {
+      res.status(404).json({ message: "Team Not Found " });
+    } else if ((team.role = "leader")) {
+      //   const keys = team.logo.split("/").pop(); // taking image name
+
+      //   deleteFromS3(keys); // deleting image from the s3 bucket
+
+      //   // uploading new image into s3 bucket
+      //   await uploadToS3(req.file)
+      //     .then((result) => {
+      //       filePath = result.Location;
+      //     })
+      //     .catch((error) => {
+      //       console.log(error.message);
+      //     });
+      const filename = req.file.filename;
+
+      const filePath = `uploads/teamsLogo/${filename}`;
+
+      team.teamName = teamName;
+      team.logo = filePath;
+      team.userId = userId;
+
+      // Corrected line: Call the save method on the team instance
+      await team.save();
+
+      return res
+        .status(200)
+        .json({ message: "Team updated Successfully", updatedTeam: team });
+    }
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
+//get all teams
+exports.getAllTeams = async (req, res, next) => {
+  try {
+    const allTeams = await Teams.findAll({
+      include: { model: db.user, attributes: ["username", "fullname"] },
+    });
+
+    if (allTeams.length === 0) {
+      res.status(400).json({ message: "No Teams Available !!!" });
+    } else {
+      return res
+        .status(200)
+        .json({ message: "List of Available Teams", allTeams });
+    }
+  } catch (error) {
+    console.error("Error:", error.message);
+    next(error);
+  }
+};
+
+// Invitation links
+exports.inviteLinks = async (req, res, next) => {
+  const teamId = req.params.id;
+  const userId = req.user.id;
+  const team = await Teams.findByPk(teamId);
+  if (!team) {
+    return res.status(404).json({ message: "Teams Not found" });
+  }
+  if (team.userId != userId) {
+    return res
+      .status(401)
+      .json({ message: "You donot have permission", status: 401 });
+  }
+  const token = jwt.sign({ teamId }, process.env.JWT_SECRET, {
+    expiresIn: process.env.TEAM_INVITATION_EXPIRES_IN,
+  });
+  const teamInvitationLink = `${req.headers.origin}/squad/${team.id}?invitation=${token}`;
+  return res.status(200).json({ teamInvitationLink });
+};
