@@ -11,6 +11,7 @@ const teamRouter = require("./routes/teamRoutes/teamRouter");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 app.use("/user", userRouter);
 app.use("/game", gameRouter);
 app.use("/tournament", tournamentRouter);
