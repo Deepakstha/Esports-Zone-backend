@@ -38,4 +38,25 @@ const accountActivationMail = async ({ email, subject, fullname, token }) => {
   await transporter.sendMail(mailOption);
 };
 
-module.exports = { accountActivationMail };
+const passwordResetMail = async (options) => {
+  const mailOptions = {
+    from: `Playground <${process.env.SMTP_MAIL}>`,
+    to: options.email,
+    subject: options.subject,
+    html: `
+    
+    <center>
+      <div style="background-color:#DFE7F1; padding:50px; ">
+        <div style=" background-color:#fff; width:400px; padding:50px; border-radius:10px;">
+          <h1>Reset Password</h1>
+          <p> Please Click the button to reset password </p>
+          <a href="${options.token}" style="color: #fff; background-color:#FF8F40; padding:10px 15px; border-radius:40px">Reset Password</a>
+        </div>
+      </div>
+    </center>
+  `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+module.exports = { accountActivationMail, passwordResetMail };

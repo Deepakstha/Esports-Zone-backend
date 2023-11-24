@@ -3,7 +3,7 @@ const router = require("express").Router();
 const isAuthenticated = require("../../middleware/isAuthenticated");
 const catchAsync = require("../../utils/catchAsync");
 const { givePermissionTo } = require("../../middleware/givePermission");
-// const { gamesImagesUpload } = require("../services/multer");
+const { gamesImagesUpload } = require("../../services/multer");
 
 router
   .route("/")
