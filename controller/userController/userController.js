@@ -305,3 +305,50 @@ exports.updateUserBio = async (req, res) => {
   await user.save();
   return res.status(200).json(user.bio);
 };
+
+// Update Profile
+exports.updateProfile = async (req, res) => {
+  const userId = req.user.id;
+  const { fullName, username } = req.body;
+  // if (!fullName || !username) {
+  //   return res.status(400).json({ message: "Please insert required Field" });
+  // }
+
+  const user = await User.findOne({
+    where: userId,
+    attributes: ["id", "username", "fullName", "email", "avatar"],
+  });
+
+  if (!user) {
+    return res.json({ message: "User not Found", status: 400 });
+  }
+
+  if (req.file) {
+    let filePath;
+    const keys = user.avatar.split("/").pop(); // taking image name
+    if (keys != "avatar.png") {
+      deleteFromS3(keys);
+    }
+    await uploadToS3(req.file)
+      .then((result) => {
+        filePath = result.Location;
+      })
+      .catch((error) => {
+        console.log(error.message);
+      });
+    user.avatar = filePath;
+  }
+
+  if (fullName) {
+    user.fullName = fullName;
+  }
+
+  if (username) {
+    user.username = username;
+  }
+  user.save();
+
+  return res
+    .status(200)
+    .json({ message: "Profile Updated!", status: 200, user });
+};
