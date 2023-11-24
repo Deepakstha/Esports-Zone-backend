@@ -34,3 +34,21 @@ exports.getUserWallet = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getAllWallets = async (req, res, next) => {
+  try {
+    const wallets = await Wallet.findAll();
+    if (wallets.length > 0) {
+      res.status(200).json({
+        message: "Wallets fetched successfully !",
+        data: wallets,
+      });
+    } else {
+      res.status(400).json({
+        message: "No wallets found !",
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
