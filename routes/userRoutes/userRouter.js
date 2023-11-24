@@ -2,6 +2,8 @@ const router = require("express").Router();
 const userController = require("../../controller/userController/userController");
 const catchAsync = require("../../utils/catchAsync");
 const { givePermissionTo } = require("../../middleware/givePermission");
+const isAuthenticated = require("../../middleware/isAuthenticated");
+const { avatar } = require("../../services/multer");
 
 router.post("/signup", catchAsync(userController.signup));
 router.get("/activation", catchAsync(userController.activateAccount));
@@ -19,7 +21,7 @@ router
   .get(catchAsync(isAuthenticated), catchAsync(userController.getProfile))
   .post(
     catchAsync(isAuthenticated),
-    upload.single("avatar"),
+    avatar.single("avatar"),
     catchAsync(userController.updateProfile)
   );
 

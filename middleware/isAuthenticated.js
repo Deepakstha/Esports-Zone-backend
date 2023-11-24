@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const user = require("../model").user;
 const util = require("util");
 const promisify = util.promisify;
-const customErrorHandler = require("../middleware/customErrorHandler");
+const customErrorHandler = require("../utils/customerErrorHandler");
 module.exports = async (req, res, next) => {
   // const token = req.cookies.token;
   const { authorization } = req.headers;

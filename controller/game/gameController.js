@@ -7,15 +7,14 @@ const Games = db.games;
 // Create Games
 exports.createGames = async (req, res, next) => {
   const { gameName } = req.body;
-  // let filePath;
-  // console.log("error:ERROR");
-  // console.log(req.files.gameCoverImage[0].fieldname, "HLSLDHLCOVER");
-  // console.log(req.files.gameIcon[0].fieldname, "HLSLDHLICON");
+
+  console.log(req.files.gameCoverImage[0].fieldname, "HLSLDHLCOVER");
+  console.log(req.files.gameIcon[0].fieldname, "HLSLDHLICON");
 
   const gameCoverImage = req.files.gameCoverImage[0].fieldname;
   const gameIcon = req.files.gameIcon[0].fieldname;
-  let coverImageUrl;
-  let iconfileUrl;
+  let coverImageUrl = `uploads/games/gameCoverImage/${gameCoverImage}`;
+  let iconfileUrl = `uploads/games/gameIcon/${gameIcon}`;
 
   if (!gameName) {
     return res.status(400).json({
@@ -41,22 +40,14 @@ exports.createGames = async (req, res, next) => {
       fs.unlink(coverImageUrl, (error) => {
         if (error) {
           console.log(error);
-          res.status(500).json({ message: "Error deleting file" });
         } else {
-          res.json({
-            message: "File Deleted Successfully",
-          });
           console.log("File Deleted");
         }
       });
       fs.unlink(iconfileUrl, (error) => {
         if (error) {
           console.log(error);
-          res.status(500).json({ message: "Error deleting file" });
         } else {
-          res.json({
-            message: "File Deleted Successfully",
-          });
           console.log("File Deleted");
         }
       });
@@ -75,6 +66,10 @@ exports.createGames = async (req, res, next) => {
           message: "Games Created Sucessfull",
           createGames,
           status: 200,
+        });
+      } else {
+        return res.status(200).json({
+          message: "Not created",
         });
       }
     }
