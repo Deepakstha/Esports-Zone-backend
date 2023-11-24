@@ -40,3 +40,53 @@ exports.createPrizePool = async (req, res, next) => {
     });
   }
 };
+
+// Get All Prize Pool
+exports.getAllPrizePool = async (req, res) => {
+  try {
+    const prizePool = await PrizePool.findAll();
+    if (prizePool.length != 0) {
+      res.status(200).json({
+        message: "Prize pool fetched successfully",
+        data: prizePool,
+        status: 200,
+      });
+    } else {
+      res.status(400).json({
+        message: "No prize pool available",
+        status: 400,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+      status: 500,
+    });
+  }
+};
+
+//Get Singel Prize Pool
+exports.getSinglePrizePool = async (req, res) => {
+  const prizePoolId = req.params.id;
+
+  try {
+    const prizePool = await PrizePool.findByPk(prizePoolId);
+    if (prizePool) {
+      res.status(200).json({
+        message: "Prize pool fetched successfully",
+        data: prizePool,
+        status: 200,
+      });
+    } else {
+      res.status(400).json({
+        message: "Prize pool doesn't exist",
+        status: 400,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+      status: 500,
+    });
+  }
+};
