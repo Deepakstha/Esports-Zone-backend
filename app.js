@@ -17,6 +17,7 @@ const prizePoolRouter = require("./routes/prizePoolRoutes/prizePoolRouter");
 const teamRouter = require("./routes/teamRoutes/teamRouter");
 const teamPlayerRouter = require("./routes/teamRoutes/teamPlayerRouter");
 const notificationRouter = require("./routes/notificationRoutes/notificationRouter");
+const tournamentRegistration = require("./routes/tournamentRoutes/tournamentRegistrationRouter");
 
 const corsOption = {
   origin: origin,
@@ -57,6 +58,7 @@ app.use("/prize-pool", prizePoolRouter);
 app.use("/team", teamRouter);
 app.use("/team-player", teamPlayerRouter);
 app.use("/notification", notificationRouter);
+app.use("/tournament-registration", tournamentRegistration);
 
 app.use("*", (req, res) => {
   return res.status(404).json({ message: "Route Not Found", status: 404 });
