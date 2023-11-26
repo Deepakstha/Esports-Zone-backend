@@ -16,6 +16,7 @@ const walletRouter = require("./routes/walletRoutes/walletRouter");
 const prizePoolRouter = require("./routes/prizePoolRoutes/prizePoolRouter");
 const teamRouter = require("./routes/teamRoutes/teamRouter");
 const teamPlayerRouter = require("./routes/teamRoutes/teamPlayerRouter");
+const notificationRouter = require("./routes/notificationRoutes/notificationRouter");
 
 const corsOption = {
   origin: origin,
@@ -55,6 +56,7 @@ app.use("/wallet", walletRouter);
 app.use("/prize-pool", prizePoolRouter);
 app.use("/team", teamRouter);
 app.use("/team-player", teamPlayerRouter);
+app.use("/notification", notificationRouter);
 
 app.use("*", (req, res) => {
   return res.status(404).json({ message: "Route Not Found", status: 404 });
