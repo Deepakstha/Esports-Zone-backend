@@ -106,3 +106,39 @@ exports.updateTimeSlot = async (req, res) => {
     status: 200,
   });
 };
+
+exports.deleteTimeSlot = async (req, res, error) => {
+  const timeSlotId = req.params.timeSlotId;
+  try {
+    // this stores the no of rows affected
+    const timeSlot = await TimeSlot.destroy({
+      where: {
+        id: timeSlotId,
+      },
+    });
+
+    //checking if any rows is affected by the above query
+    if (timeSlot != 0) {
+      return res.status(200).json({
+        message: "Time slot deleted successfully.",
+        status: 200,
+      });
+    } else {
+      return res.status(400).json({
+        message: "Time slot is not found or deleted already.",
+        status: 400,
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.displayTimeSlotByTournamentId = async (req, res, next) => {
+  const { tournamentId } = req.params;
+  const timeSloteById = await TimeSlot.findAll({
+    where: { tournamentId },
+    include: [{ model: db.tournamentRegistration, attributes: ["id"] }],
+  });
+  return res.status(200).json({ timeSlot: timeSloteById });
+};
