@@ -53,3 +53,88 @@ exports.createTournamentResult = async (req, res) => {
   }
   return res.json({ message: "Tournament Result Added" });
 };
+
+exports.displayAllTournamentsResult = async (req, res) => {
+  const allTournamentsResult = await TournamentResult.findAll({
+    include: [
+      { model: Tournament, required: true },
+      { model: TimeSlot, require: true },
+      { model: Team, require: true },
+      { model: User, require: true },
+    ],
+  });
+  if (allTournamentsResult == 0) {
+    return res.json({ message: "No Tournament Result", status: 404 });
+  }
+  return res.json({ allTournamentsResult, status: 200 });
+};
+
+//displaying one tournament result
+exports.displayTournamentResult = async (req, res) => {
+  const { tournamentId } = req.params;
+  const tournamentResult = await TournamentResult.findAll({
+    where: { tournamentId },
+    include: [
+      { model: Tournament, attributes: ["tournamentName"] },
+      { model: TimeSlot, attributes: ["startTime", "endTime"] },
+      { model: Team, attributes: ["teamName"] },
+      { model: User, attributes: ["username"] },
+    ],
+  });
+
+  if (!tournamentResult) {
+    return res.json({ message: "No Tournament Result", status: 404 });
+  }
+
+  const uniqueTimeSlot = await TournamentResult.findAll({
+    where: { tournamentId },
+    attributes: ["timeSlotId"],
+    include: [{ model: TimeSlot, attributes: ["startTime", "endTime"] }],
+
+    group: ["timeSlotId"],
+  });
+
+  // const
+  return res.json({ tournamentResult, uniqueTimeSlot, status: 200 });
+};
+
+// Updating tournament Result in Bulk
+exports.updateTournamentResultInBulk = async (req, res) => {
+  const { winners } = req.body;
+
+  let updatedData = [];
+  for (const item of winners) {
+    const data = await TournamentResult.update(
+      { teamId: item.teamId, userId: item.userId },
+      {
+        where: {
+          timeSlotId: item.timeSlotId,
+          id: item.id,
+          tournamentId: item.tournamentId,
+        },
+      }
+    );
+    updatedData.push(data);
+  }
+  console.log(updatedData, "UPDATED DATA");
+
+  if (updatedData != winners) {
+    return res.status(400).json({ message: "Tournament no updated" });
+  }
+
+  return res.json({ message: "Tournament Result Updated!" });
+};
+
+//Deleting tournament Result
+exports.deleteTournamentResult = async (req, res) => {
+  const { id } = req.params;
+  const tournamentResult = await TournamentResult.findByPk(id);
+  if (!tournamentResult) {
+    return res.json({
+      message: "This Tournament Result doesnot Exist",
+      status: 400,
+    });
+  }
+  await TournamentResult.destroy({ where: { id: req.params.id } });
+  return res.json({ message: "Tournament Deleted", status: 200 });
+};
