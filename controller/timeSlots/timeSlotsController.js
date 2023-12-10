@@ -70,3 +70,39 @@ exports.getSingleTimeSlot = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.updateTimeSlot = async (req, res) => {
+  const { startTime, endTime, maxNoOfParticipants } = req.body;
+  const timeSlotId = req.params.timeSlotId;
+  if (!startTime || !endTime || !maxNoOfParticipants) {
+    return res.status(400).json({
+      message: "Missing required fields!",
+      status: 400,
+    });
+  }
+  const startTimeNumber = new Date(startTime).getTime();
+  const endTimeNumber = new Date(endTime).getTime();
+
+  const timeSlot = await TimeSlot.findByPk(timeSlotId);
+  if (!timeSlot) {
+    return res.status(404).json({
+      message: "Time slot not found",
+      status: 404,
+    });
+  }
+
+  // Update time slot properties
+  timeSlot.startTime = startTime;
+  timeSlot.endTime = endTime;
+  timeSlot.startTimeNumber = startTimeNumber;
+  timeSlot.endTimeNumber = endTimeNumber;
+  timeSlot.maxNoOfParticipants = maxNoOfParticipants;
+
+  await timeSlot.save();
+
+  return res.status(200).json({
+    message: "Time slot updated successfully",
+    timeSlot,
+    status: 200,
+  });
+};
