@@ -103,11 +103,18 @@ exports.tournamentUpload = tournament.fields([
   { name: "tournamentIcon" },
   { name: "tournamentCover" },
 ]);
-let gamesImages = multer({ storage: gamesStorage, fileFilter: fileFilter });
-exports.gamesImagesUpload = gamesImages.fields([
-  { name: "gameCoverImage" },
-  { name: "gameIcon" },
-]);
+
+exports.gamesImagesUpload = multer({
+  storage: gamesStorage,
+  fileFilter: fileFilter,
+});
+// exports.gamesImagesUpload = multer({
+//   storage: gamesStorage,
+//   fileFilter: fileFilter,
+// }).fields([
+//   { name: "gameCoverImage", maxCount: 1 },
+//   { name: "gameIcon", maxCount: 1 },
+// ]);
 
 exports.teamLogo = multer({ storage: teamLogo, fileFilter: fileFilter });
 

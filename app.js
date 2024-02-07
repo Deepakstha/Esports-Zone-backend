@@ -23,7 +23,13 @@ const notificationRouter = require("./routes/notificationRoutes/notificationRout
 const tournamentRegistration = require("./routes/tournamentRoutes/tournamentRegistrationRouter");
 const leaderBoardRouter = require("./routes/leaderBoardRoutes/leaderBoardRouter");
 const tournamentResultRouter = require("./routes/tournamentRoutes/tournamentResultRouter");
-
+const origin = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://192.168.1.78:5173",
+  "https://playground-react-app-rho.vercel.app",
+  "https://playground-hunchhadigital.netlify.app",
+];
 const corsOption = {
   origin: origin,
   optionsSuccessStatus: 200,

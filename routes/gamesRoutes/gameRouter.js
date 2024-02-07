@@ -10,7 +10,10 @@ router
   .post(
     catchAsync(isAuthenticated),
     givePermissionTo(["admin"]),
-    gamesImagesUpload,
+    gamesImagesUpload.fields([
+      { name: "gameCoverImage", maxCount: 1 },
+      { name: "gameIcon", maxCount: 1 },
+    ]),
     catchAsync(gamesController.createGames)
   )
   .get(catchAsync(gamesController.getAllGames));
@@ -20,7 +23,10 @@ router
   .patch(
     isAuthenticated,
     givePermissionTo(["admin"]),
-    gamesImagesUpload,
+    gamesImagesUpload.fields([
+      { name: "gameCoverImage", maxCount: 1 },
+      { name: "gameIcon", maxCount: 1 },
+    ]),
     catchAsync(gamesController.updateGameById)
   )
   .delete(
