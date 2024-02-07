@@ -8,8 +8,8 @@ const Games = db.games;
 exports.createGames = async (req, res, next) => {
   const { gameName } = req.body;
 
-  const gameCoverImage = req.files.gameCoverImage[0].fieldname;
-  const gameIcon = req.files.gameIcon[0].fieldname;
+  const gameCoverImage = req.files.gameCoverImage[0].filename;
+  const gameIcon = req.files.gameIcon[0].filename;
   let coverImageUrl = `uploads/games/gameCoverImage/${gameCoverImage}`;
   let iconfileUrl = `uploads/games/gameIcon/${gameIcon}`;
 
