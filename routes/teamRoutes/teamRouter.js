@@ -2,12 +2,13 @@ const teamController = require("../../controller/team/teamController");
 const router = require("express").Router();
 const { teamLogo } = require("../../services/multer");
 const isAuthenticated = require("../../middleware/isAuthenticated");
+const catchAsync = require("../../utils/catchAsync");
 
 router
   .route("/")
   .post(
     isAuthenticated,
-    teamLogo.single("teamLogo"),
+    // teamLogo.single("teamLogo"),
     catchAsync(teamController.createTeams)
   )
   .get(catchAsync(teamController.getAllTeams));
@@ -26,7 +27,7 @@ router
   .delete(isAuthenticated, catchAsync(teamController.deleteById))
   .patch(
     isAuthenticated,
-    teamLogo.single("teamLogo"),
+    // teamLogo.single("teamLogo"),
     catchAsync(teamController.updateById)
   );
 

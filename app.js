@@ -6,7 +6,9 @@ const cors = require("cors");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const passport = require("passport");
-const { googleAuth } = require("./controller/googleAuthController");
+const {
+  googleAuth,
+} = require("./controller/userController/googleAuthController");
 
 //importing routes
 const userRouter = require("./routes/userRoutes/userRouter");
@@ -20,6 +22,7 @@ const teamPlayerRouter = require("./routes/teamRoutes/teamPlayerRouter");
 const notificationRouter = require("./routes/notificationRoutes/notificationRouter");
 const tournamentRegistration = require("./routes/tournamentRoutes/tournamentRegistrationRouter");
 const leaderBoardRouter = require("./routes/leaderBoardRoutes/leaderBoardRouter");
+const tournamentResultRouter = require("./routes/tournamentRoutes/tournamentResultRouter");
 
 const corsOption = {
   origin: origin,
@@ -63,6 +66,7 @@ app.use("/team-player", teamPlayerRouter);
 app.use("/notification", notificationRouter);
 app.use("/tournament-registration", tournamentRegistration);
 app.use("/leaderboard", leaderBoardRouter);
+app.use("/tournament-result", tournamentResultRouter);
 
 app.use("*", (req, res) => {
   return res.status(404).json({ message: "Route Not Found", status: 404 });
