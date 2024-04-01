@@ -25,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     avatar: {
       type: DataTypes.TEXT,
-      defaultValue: "/uploads/avatar/avatar.png",
+      defaultValue: "uploads/avatar/avatar.png",
     },
     bio: {
       type: DataTypes.TEXT,

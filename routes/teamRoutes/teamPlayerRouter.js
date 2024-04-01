@@ -1,4 +1,5 @@
 const teamPlayerController = require("../../controller/team/teamPlayerController");
+const checkOptionalAuth = require("../../middleware/checkOptionalAuth");
 const router = require("express").Router();
 const isAuthenticated = require("../../middleware/isAuthenticated");
 const catchAsync = require("../../utils/catchAsync");
@@ -8,7 +9,7 @@ router
   .get(isAuthenticated, catchAsync(teamPlayerController.sendTeamJoinRequest));
 
 router
-  .route("/teamRequestAccept")
+  .route("/teamRequestAccept/:request_token")
   .get(
     isAuthenticated,
     catchAsync(teamPlayerController.viewDetailsOfSendingRequestUser)
@@ -51,4 +52,11 @@ router.delete(
   isAuthenticated,
   catchAsync(teamPlayerController.leaveTeam)
 );
+
+router.get(
+  "/checkteamrole/:teamId",
+  checkOptionalAuth,
+  teamPlayerController.checkTeamRole
+);
+
 module.exports = router;

@@ -13,6 +13,7 @@ exports.displayLeaderBoardOfTeam = async (req, res, next) => {
 exports.displayLeaderBoardOfSoloPlayer = async (req, res, next) => {
   const players = await db.user.findAll({
     attributes: ["userName", "avatar", "wins"],
+    where: { role: { [db.Sequelize.Op.ne]: "admin" } },
     order: [["wins", "DESC"]],
     limit: 100,
   });

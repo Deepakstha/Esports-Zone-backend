@@ -3,15 +3,18 @@ const jwt = require("jsonwebtoken");
 const fs = require("fs");
 const bcrypt = require("bcrypt");
 const User = require("../../model").user;
+const Wallet = require("../../model").wallet;
 const { createToken, verifyToken } = require("../../utils/tokenManager");
 const customeErrorHandler = require("../../utils/customerErrorHandler");
 const { accountActivationMail } = require("../../services/sendMail");
 
 exports.signup = async (req, res, next) => {
   const { fullname, email, password } = req.body;
-  if (!fullname) return next(customeErrorHandler(400, "Fullname is required"));
-  if (!email) return next(customeErrorHandler(400, "Email is required"));
-  if (!password) return next(customeErrorHandler(400, "Password is required"));
+  console.log(req.body);
+  if (!fullname)
+    return res.status(400).json({ message: "Fullname is required" });
+  if (!email) return res.status(400).json({ message: "Email is required" });
+  if (!password) return res.status(400).json({ message: "Email is  required" });
 
   let userEmailExist = await User.findOne({ where: { email } });
 
@@ -32,7 +35,7 @@ exports.signup = async (req, res, next) => {
     //     console.log("File Deleted");
     //   }
     // });
-    return next(customeErrorHandler(400, "User Already Registered"));
+    return res.status(400).json({ message: "User Already Registered" });
   }
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = {
@@ -46,8 +49,8 @@ exports.signup = async (req, res, next) => {
     process.env.ACTIVATION_SECRET,
     "5m"
   ).toString();
-
-  const activationUrl = `${req.headers.origin}/user/activation?token=${activationToken}`;
+  // ${req.headers.origin}
+  const activationUrl = `${req.headers.origin}/activation?token=${activationToken}`;
   res
     .status(200)
     .json({ message: "Verification mail has been sent to your email" });
@@ -62,44 +65,58 @@ exports.signup = async (req, res, next) => {
 
 // activate user
 exports.activateAccount = async (req, res, next) => {
-  // const { activationToken } = req.body;
-  const { activationToken } = req.params;
+  const { activationToken } = req.body;
+  console.log(req.body);
+  // const { activationToken } = req.params;
   if (!activationToken) {
     return res.status(400).json({ message: "Invallid Token!" });
   }
 
-  let decode = verifyToken(activationToken, process.env.ACTIVATION_SECRET);
-  if (!decode) {
-    return res.status(400).json({ message: "Invallid Token!" });
-  }
-  const { fullname, email, password } = decode;
-  const userEmailExist = await User.findOne({ where: { email } });
-  if (userEmailExist) {
-    return res
-      .status(401)
-      .json({ message: "User Already Registered!", status: 401 });
-  }
+  try {
+    let decode = verifyToken(activationToken, process.env.ACTIVATION_SECRET);
+    if (!decode || decode.exp < Math.floor(Date.now() / 1000)) {
+      return res.status(400).json({ message: "Invallid Token!" });
+    }
+    const { fullname, email, password } = decode;
+    const userEmailExist = await User.findOne({ where: { email } });
+    if (userEmailExist) {
+      return res
+        .status(401)
+        .json({ message: "User Already Registered!", status: 401 });
+    }
 
-  let randomNumber = Math.floor(Math.random() * 10000);
-  const firstName = fullname.split(" ")[0];
-  const user = await User.create({
-    fullname,
-    username: firstName + randomNumber,
-    email,
-    password,
-  });
+    let randomNumber = Math.floor(Math.random() * 10000);
+    const firstName = fullname.split(" ")[0];
+    const user = await User.create({
+      fullname,
+      username: firstName + randomNumber,
+      email,
+      password,
+    });
 
-  if (user) {
-    return res.json({ message: "User Registered" });
+    if (user) {
+      const balance = await Wallet.findOne({ where: { userId: user.id } });
+      if (!balance) {
+        await Wallet.create({ userId: user.id, balance: 0 });
+      }
+      return res.status(200).json({ message: "User Registered", status: 200 });
+    }
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      return res
+        .status(400)
+        .json({ message: "Please Register again Your Token Expired!" });
+    }
+    return res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
 // Login controller
 exports.login = async (req, res, next) => {
   const { email, password } = req.body;
-  if (!email) return next(customeErrorHandler(400, "Email field is Empty"));
+  if (!email) return res.status(400).json({ message: "Email Field is Empty" });
   if (!password)
-    return next(customeErrorHandler(400, "Password Field is empty"));
+    return res.status(400).json({ message: "Password Field is empty" });
 
   const foundUser = await User.findOne({
     where: {
@@ -107,12 +124,13 @@ exports.login = async (req, res, next) => {
     },
   });
   if (!foundUser) {
-    if (!foundUser) return next(customeErrorHandler(401, "wrong credentials!"));
+    if (!foundUser)
+      return res.status(401).json({ message: "wrong credentials!" });
   }
 
   const matchPassword = bcrypt.compareSync(password, foundUser.password);
   if (!matchPassword)
-    return next(customeErrorHandler(401, "wrong credentials!!"));
+    return res.status(401).json({ message: "wrong credentials!!" });
 
   let token = createToken(
     { id: foundUser.id },
@@ -268,7 +286,7 @@ exports.getProfile = async (req, res) => {
       "fullname",
       "email",
       "avatar",
-      "tournamentsPlayed",
+      "tournamentPlayed",
       "wins",
       "bio",
     ],

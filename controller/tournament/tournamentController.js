@@ -1,3 +1,6 @@
+const fs = require("fs");
+const { promises } = require("fs");
+
 const db = require("../../model");
 const Tournament = db.tournament;
 const TimeSlots = db.timeSlots;
@@ -18,8 +21,8 @@ exports.createTournament = async (req, res, next) => {
     gameId,
   } = req.body;
 
-  const tournamentIcon = req.files.tournamentIcon[0].fieldname;
-  const tournamentCover = req.files.tournamentCover[0].fieldname;
+  const tournamentIcon = req.files.tournamentIcon[0].filename;
+  const tournamentCover = req.files.tournamentCover[0].filename;
   let tournamentIconUrl;
   let tournamentCoverUrl;
 
@@ -135,21 +138,23 @@ exports.createTournament = async (req, res, next) => {
   }
 
   if (tournamentIcon && tournamentCover) {
-    await uploadToS3(req.files.tournamentIcon[0])
-      .then((result) => {
-        tournamentIconUrl = result.Location;
-      })
-      .catch((error) => {
-        console.log(error.message);
-      });
+    // await uploadToS3(req.files.tournamentIcon[0])
+    //   .then((result) => {
+    //     tournamentIconUrl = result.Location;
+    //   })
+    //   .catch((error) => {
+    //     console.log(error.message);
+    //   });
 
-    await uploadToS3(req.files.tournamentCover[0])
-      .then((result) => {
-        tournamentCoverUrl = result.Location;
-      })
-      .catch((error) => {
-        console.log(error.message);
-      });
+    // await uploadToS3(req.files.tournamentCover[0])
+    //   .then((result) => {
+    //     tournamentCoverUrl = result.Location;
+    //   })
+    //   .catch((error) => {
+    //     console.log(error.message);
+    //   });
+    tournamentIconUrl = `uploads/tournament/tournamentIcon/${tournamentIcon}`;
+    tournamentCoverUrl = `uploads/tournament/tournamentCover/${tournamentCover}`;
   }
 
   try {
@@ -486,24 +491,46 @@ exports.updateTournament = async (req, res, next) => {
   // tournament icon url
   let newTournamentIconUrl;
   if (req.files.tournamentIcon) {
-    const tournamentIcon = req.files.tournamentIcon[0];
-    const keys = tournament.tournamentIcon.split("/").pop();
-    deleteFromS3(keys); // deleting image form s3 bucket
-    await uploadToS3(tournamentIcon).then((result) => {
-      newTournamentIconUrl = result.Location;
+    const tournamentIcon = req.files.tournamentIcon[0].filename;
+    // const keys = tournament.tournamentIcon.split("/").pop();
+
+    // deleteing image from the file
+    fs.unlink(tournament.tournamentIcon, (error) => {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("File Deleted");
+      }
     });
+
+    newTournamentIconUrl = `uploads/tournament/tournamentIcon/${tournamentIcon}`;
+
+    // deleteFromS3(keys); // deleting image form s3 bucket
+    // await uploadToS3(tournamentIcon).then((result) => {
+    //   newTournamentIconUrl = result.Location;
+    // });
     tournament.tournamentIcon = newTournamentIconUrl;
   }
 
   // tournament cover url
   let newTournamentCoverUrl;
   if (req.files.tournamentCover) {
-    const tournamentCover = req.files.tournamentCover[0];
-    const keys = tournament.tournamentCover.split("/").pop();
-    deleteFromS3(keys); // deleting image from s3
-    await uploadToS3(tournamentCover).then((result) => {
-      newTournamentCoverUrl = result.Location;
+    const tournamentCover = req.files.tournamentCover[0].filename;
+    fs.unlink(tournament.tournamentCover, (error) => {
+      if (error) {
+        console.log(error);
+      } else {
+        console.log("File Deleted");
+      }
     });
+
+    newTournamentIconUrl = `uploads/tournament/tournamentCover/${tournamentCover}`;
+
+    // const keys = tournament.tournamentCover.split("/").pop();
+    // deleteFromS3(keys); // deleting image from s3
+    // await uploadToS3(tournamentCover).then((result) => {
+    //   newTournamentCoverUrl = result.Location;
+    // });
     tournament.tournamentCover = newTournamentCoverUrl;
   }
 
@@ -530,15 +557,27 @@ exports.deleteTournament = async (req, res, next) => {
         status: 404,
       });
     }
-    const tournamentIconKey = tournament.tournamentIcon.split("/").pop();
-    const tournamentCoverKey = tournament.tournamentCover.split("/").pop();
+
     const deleteTournament = await Tournament.destroy({
       where: { id: req.params.id },
     });
 
     if (deleteTournament) {
-      deleteFromS3(tournamentIconKey);
-      deleteFromS3(tournamentCoverKey);
+      fs.unlink(tournament.tournamentIcon, (error) => {
+        if (error) {
+          console.log(error);
+        } else {
+          console.log("File Deleted");
+        }
+      });
+
+      fs.unlink(tournament.tournamentCover, (error) => {
+        if (error) {
+          console.log(error);
+        } else {
+          console.log("File Deleted");
+        }
+      });
     }
 
     res.status(200).json({ message: "Tournament is deleted !", status: 200 });

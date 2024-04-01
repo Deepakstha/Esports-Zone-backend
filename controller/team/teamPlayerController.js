@@ -162,15 +162,15 @@ exports.acceptTeamJoinRequest = async (req, res, next) => {
     teamId,
   });
 
-  sendNotification(
-    userId,
-    playerUserDetails.id,
-    `You Joind the team ${teams.teamName}`
-  );
+  // sendNotification(
+  //   userId,
+  //   playerUserDetails.id,
+  //   `You Joind the team ${teams.teamName}`
+  // );
 
-  await db.Notification.destroy({
-    where: { id: notificationId },
-  });
+  // await db.Notification.destroy({
+  //   where: { id: notificationId },
+  // });
 
   // await db.Notification.update(
   //   { status: "ACCEPTED" },
@@ -387,5 +387,25 @@ exports.leaveTeam = async (req, res, next) => {
   } catch (error) {
     console.log(error);
     next(error);
+  }
+};
+
+exports.checkTeamRole = async (req, res, next) => {
+  const userId = req.user.id;
+  const teamId = req.params.teamId;
+  if (!userId) {
+    return;
+  }
+
+  const checkRole = await TeamPlayers.findOne({
+    where: { userId, teamId },
+    include: [
+      { model: db.user, attributes: ["id", "username", "fullName", "avatar"] },
+    ],
+  });
+  console.log(checkRole, "CHECKROLE");
+
+  if (checkRole) {
+    return res.json({ userRole: checkRole });
   }
 };

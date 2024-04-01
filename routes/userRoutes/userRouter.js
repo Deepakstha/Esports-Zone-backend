@@ -6,7 +6,7 @@ const isAuthenticated = require("../../middleware/isAuthenticated");
 const { avatar } = require("../../services/multer");
 
 router.post("/signup", catchAsync(userController.signup));
-router.get("/activation", catchAsync(userController.activateAccount));
+router.post("/activation", catchAsync(userController.activateAccount));
 router.post("/login", catchAsync(userController.login));
 router.post("/reset", catchAsync(userController.sendResetPasswordLink));
 router.post("/reset/:reset_token", catchAsync(userController.resetPassword));

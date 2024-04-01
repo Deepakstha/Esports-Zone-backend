@@ -94,6 +94,7 @@ exports.getSinglePrizePool = async (req, res) => {
 // Update Prize Pool
 exports.updatePrizePool = async (req, res) => {
   const { prize, placements } = req.body;
+  console.log(prize, "hello prIZE");
   const prizePoolId = req.params.id;
 
   console.log(prize, "prize");
@@ -168,7 +169,6 @@ exports.displayPrizePoolByTournamentId = async (req, res, next) => {
   const sortPrizePool = prizePoolWithTournament.sort(
     (a, b) => a.placements - b.placements
   );
-
   // console.log(JSON.stringify(sortPrizePool));
   return res.status(200).json(sortPrizePool);
 };

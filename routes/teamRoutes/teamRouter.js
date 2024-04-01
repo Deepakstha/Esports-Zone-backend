@@ -8,7 +8,7 @@ router
   .route("/")
   .post(
     isAuthenticated,
-    // teamLogo.single("teamLogo"),
+    teamLogo.single("teamLogo"),
     catchAsync(teamController.createTeams)
   )
   .get(catchAsync(teamController.getAllTeams));
@@ -27,7 +27,7 @@ router
   .delete(isAuthenticated, catchAsync(teamController.deleteById))
   .patch(
     isAuthenticated,
-    // teamLogo.single("teamLogo"),
+    teamLogo.single("teamLogo"),
     catchAsync(teamController.updateById)
   );
 

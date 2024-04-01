@@ -48,10 +48,31 @@ exports.createTournamentResult = async (req, res) => {
   }
 
   const tournamentResult = await TournamentResult.bulkCreate(winners);
+  console.log(tournamentResult, "Result");
+  tournamentResult?.map(async (e) => {
+    if (e.dataValues.placement == 1) {
+      if (e.dataValues.teamId) {
+        const team = await Team.findByPk(e.dataValues.teamId);
+        team.wins = team.wins + 1;
+        team.save();
+
+        return `${e.dataValues.teamId} team`;
+      } else {
+        const user = await User.findByPk(e.dataValues.userId);
+        user.wins = user.wins + 1;
+        user.save();
+        return `Player ${e.dataValues.userId}`;
+      }
+    }
+  });
+
+  // const findTeam = await Team.findByPk(teamId);
+  //   findTeam.wins = findTeam.wins + 1;
+  //   findTeam.save();
   if (!tournamentResult) {
     return res.json({ message: "Cannot add tournament result" });
   }
-  return res.json({ message: "Tournament Result Added" });
+  return res.json({ message: "Tournament Result Added", status: 200 });
 };
 
 exports.displayAllTournamentsResult = async (req, res) => {

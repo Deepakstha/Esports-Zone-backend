@@ -40,7 +40,7 @@ const accountActivationMail = async ({ email, subject, fullname, token }) => {
 
 const passwordResetMail = async (options) => {
   const mailOptions = {
-    from: `Playground <${process.env.SMTP_MAIL}>`,
+    from: `Esports Zone <${process.env.SMTP_MAIL}>`,
     to: options.email,
     subject: options.subject,
     html: `
