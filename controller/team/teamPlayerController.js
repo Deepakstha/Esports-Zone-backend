@@ -162,11 +162,11 @@ exports.acceptTeamJoinRequest = async (req, res, next) => {
     teamId,
   });
 
-  // sendNotification(
-  //   userId,
-  //   playerUserDetails.id,
-  //   `You Joind the team ${teams.teamName}`
-  // );
+  sendNotification(
+    userId,
+    playerUserDetails.id,
+    `You Joind the team ${teams.teamName}`
+  );
 
   // await db.Notification.destroy({
   //   where: { id: notificationId },
